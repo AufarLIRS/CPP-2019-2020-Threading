@@ -1,0 +1,19 @@
+name: CI clang format check
+
+on:
+  pull_request:
+    types: [review_requested]
+
+jobs:
+  clang-format-check:
+
+    runs-on: ubuntu-16.04
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: clang-format install
+        run: sudo apt install clang-format
+      - name: clang-format
+        run: find . -regex '.*\.\(cpp\|hpp\|h\)' -exec clang-format -style=file -i {} \;
+      - name: git diff
+        run: git diff-index --quiet HEAD
