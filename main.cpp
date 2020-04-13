@@ -1,9 +1,10 @@
 #include <iostream>
-
+#include <task1.cpp>
 using namespace std;
 
 int main()
 {
-    cout << "Hello World!" << endl;
-    return 0;
+  task1();
+  // cout << "Hello World!" << endl;
+  return 0;
 }
