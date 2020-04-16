@@ -4,66 +4,48 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <numeric>
+#include <future>
 
 using namespace std;
 
-static mutex mtx;
-static condition_variable cv;
-
-static vector<thread> threads;
-
-static vector<int> v1;
-static vector<int> v2;
-static vector<int> global;
-
-static array<int, 1000> save;
-
-static atomic<int> finalsum = 0;
-static atomic<int> counter = 0;
-
-void clearall()
-{
-  threads.clear();
-  v1.clear();
-  v2.clear();
-  finalsum = 0;
-}
-
-void partialSum(const vector<int>& vector, size_t from, size_t to)
+int partialSum(const vector<int>& vector, size_t from, size_t to)
 {
   auto sum = 0;
   for (auto i = from; i < to; i++)
   {
     sum += vector.at(i);
   }
-  unique_lock<mutex> lck(mtx);
-  global.push_back(sum);
+  return sum;
 }
 
 void Task1()
 {
-  clearall();
-
-  for (auto i = 0; i < 1000; i++)
-  {
-    v1.push_back(i);
-  }
+  vector<future<int>> futures;
+  vector<int> v1(1000);
+  std::iota(v1.begin(), v1.end(), 1);
 
   for (auto i = 0; i < 1000; i += 100)
   {
-    threads.push_back(thread(partialSum, ref(v1), i, i + 99));
+    futures.push_back(async(launch::async, partialSum, ref(v1), i, i + 100));
   }
-  for (auto& t : threads)
-    t.join();
-
-  for (auto& e : global)
+  auto globalsum = 0;
+  for (auto& e : futures)
   {
-    finalsum += e;
+    globalsum += e.get();
   }
-  cout << "Task 1 sum: " << finalsum << endl;
+
+  cout << "Task 1 sum: " << globalsum << endl;
 }
 
-void ScalarMul(const vector<int>& v1, const vector<int>& v2, size_t from, size_t to)
+static mutex mtx;
+static condition_variable cv;
+
+static array<int, 1000> save;
+
+static atomic<int> counter = 0;
+
+int ScalarMul(const vector<int>& v1, const vector<int>& v2, size_t from, size_t to)
 {
   for (auto i = from; i < to; i++)
   {
@@ -82,30 +64,30 @@ void ScalarMul(const vector<int>& v1, const vector<int>& v2, size_t from, size_t
   {
     localsum += save[i];
   }
-  finalsum += localsum;
+  return localsum;
 }
 
 void Task2and3()
 {
-  clearall();
-
-  for (auto i = 0; i < 1000; i++)
-  {
-    v1.push_back(i);
-    v2.push_back(i);
-  }
+  vector<int> v1(1000);
+  vector<int> v2(1000);
+  std::iota(v1.begin(), v1.end(), 1);
+  std::iota(v2.begin(), v2.end(), 1);
+  vector<future<int>> futures;
 
   for (auto i = 0; i < 1000; i += 100)
   {
-    threads.push_back(thread(ScalarMul, ref(v1), ref(v2), i, i + 100));
+    futures.push_back(async(launch::async, ScalarMul, ref(v1), ref(v2), i, i + 100));
   }
 
   cv.notify_all();
 
-  for (auto& t : threads)
-    t.join();
-
-  cout << "Task 2 and 3 sum: " << finalsum << endl;
+  int finalsum = 0;
+  for (auto& e : futures)
+  {
+    finalsum += e.get();
+  }
+  cout << finalsum << endl;
 }
 
 int main()
