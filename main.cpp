@@ -1,12 +1,6 @@
 #include <iostream>
 #include <methods.h>
-#include <thread>
 #include <future>
-#include <mutex>
-#include <atomic>
-#include <numeric>
-#include <future>
-#include <condition_variable>
 
 using namespace std;
 
