@@ -1,6 +1,8 @@
 #include <iostream>
 #include <methods.h>
 #include <future>
+#include <algorithm>
+#include <cstdlib>
 
 using namespace std;
 
@@ -64,8 +66,9 @@ int scalar_product_and_sum(vector<int>& vec1, vector<int>& vec2, size_t from, si
 void Task1()
 {
   cout << "Task 1:" << endl;
-  vector<int> vec = Methods::generate_vector(1000);
+  vector<int> vec(1000);
   vector<future<int>> vectors;
+  generate(vec.begin(), vec.end(), rand);
   int result = 0;
 
   // Распределяем работу
@@ -85,8 +88,14 @@ void Task1()
 void Task2()
 {
   cout << "Task 2:" << endl;
-  vector<int> vec1 = Methods::generate_vector(1000);
-  vector<int> vec2 = Methods::generate_vector(1000);
+
+  vector<int> vec1(1000);
+  generate(vec1.begin(), vec1.end(), rand);
+
+  vector<int> vec2(1000);
+  generate(vec2.begin(), vec2.end(), rand);
+
+  vector<future<int>> vectors;
 
   int result = 0;
 
@@ -107,8 +116,13 @@ void Task2()
 void Task3()
 {
   cout << "Task 3:" << endl;
-  vector<int> vec1 = Methods::generate_vector(1000);
-  vector<int> vec2 = Methods::generate_vector(1000);
+
+  vector<int> vec1(1000);
+  generate(vec1.begin(), vec1.end(), rand);
+
+  vector<int> vec2(1000);
+  generate(vec2.begin(), vec2.end(), rand);
+
   vector<future<int>> results;
 
   int result = 0;
