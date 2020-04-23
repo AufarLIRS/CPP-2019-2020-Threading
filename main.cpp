@@ -7,6 +7,8 @@ using namespace std;
 static mutex mtx;
 static condition_variable cv;
 static atomic<int> counter = 0;
+static vector<int> vector1;  // Task 2
+static vector<int> vector2;  // Task 3
 
 // Сумма элементов векторов
 int make_sum(vector<int>& vec, size_t from, size_t to)
@@ -19,20 +21,25 @@ int make_sum(vector<int>& vec, size_t from, size_t to)
   return x;
 }
 
-// Скалярное произведение векторов
-int scalar_product(vector<vector<int>>& vectors, size_t from, size_t to)
+// Скалярное произведение векторов (Task 2)
+void scalar_product(vector<int>& vec1, vector<int>& vec2, size_t from, size_t to)
 {
-  vector<int> results;
+  // Считаем произведение, складываем в общий вектор
+  for (int i = from; i < to; i++)
+  {
+    vector1.push_back(vec1[i] * vec2[i]);
+  }
+}
+
+// Скалярное произведение векторов и сложение (Task 3)
+int scalar_product_and_sum(vector<int>& vec1, vector<int>& vec2, size_t from, size_t to)
+{
   int sum = 0;
 
   // Считаем произведение
-  for (int i = from; i < to - 1; i++)
+  for (int i = from; i < to; i++)
   {
-    auto X1 = vectors[i][0];
-    auto Y1 = vectors[i][1];
-    auto X2 = vectors[i + 1][0];
-    auto Y2 = vectors[i + 1][1];
-    results.push_back(X1 * X2 + Y1 * Y2);
+    vector2.push_back(vec1[i] * vec2[i]);
   }
 
   // Готовим поток к старту суммирования
@@ -45,11 +52,12 @@ int scalar_product(vector<vector<int>>& vectors, size_t from, size_t to)
   cout << from << "..." << to << " started!" << endl;
 
   // Суммируем элементы в каждом потоке
-  for (int x : results)
+  for (int i = from; i < to; i++)
   {
-    sum += x;
+    sum += vector2[i];
   }
-  cout << from << "..." << to << " sum " << sum << endl;
+
+  cout << from << "..." << to << " sum is " << sum << endl;
   return sum;
 }
 
@@ -74,29 +82,57 @@ void Task1()
   cout << "Total result: " << result << endl << endl;
 }
 
-void Task23()
+void Task2()
 {
   cout << "Task 2:" << endl;
-  vector<vector<int>> vectors = Methods::generate_algebraic_vectors(1000);
-  vector<future<int>> results;
+  vector<int> vec1 = Methods::generate_vector(1000);
+  vector<int> vec2 = Methods::generate_vector(1000);
+
   int result = 0;
 
   // Распределяем работу
   for (auto i = 0; i < 10; i++)
   {
-    results.push_back(async(launch::async, scalar_product, ref(vectors), i * 100, i * 100 + 100));
+    async(launch::async, scalar_product, ref(vec1), ref(vec2), i * 100, i * 100 + 100);
   }
 
-  // Суммируем результаты потоков
+  // Суммируем результаты из общего вектора
+  for (auto& v : vector1)
+  {
+    result += v;
+  }
+  cout << "Total sum: " << result << endl << endl;
+}
+
+void Task3()
+{
+  cout << "Task 3:" << endl;
+  vector<int> vec1 = Methods::generate_vector(1000);
+  vector<int> vec2 = Methods::generate_vector(1000);
+  vector<future<int>> results;
+
+  int result = 0;
+
+  // Распределяем работу
+  for (auto i = 0; i < 10; i++)
+  {
+    results.push_back(async(launch::async, scalar_product_and_sum, ref(vec1), ref(vec2), i * 100, i * 100 + 100));
+  }
+
+  cv.notify_all();
+
+  // Суммируем результаты из потоков
   for (auto& r : results)
   {
     result += r.get();
   }
+
   cout << "Total sum: " << result;
 }
 
 int main()
 {
   Task1();
-  Task23();
+  Task2();
+  Task3();
 }
