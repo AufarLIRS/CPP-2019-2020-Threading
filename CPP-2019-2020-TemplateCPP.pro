@@ -7,4 +7,6 @@ CONFIG -= qt
 
 SOURCES += \
         main.cpp \
-        task1.cpp
+        task1.cpp \
+        task2.cpp \
+        task3.cpp

@@ -51,5 +51,7 @@ long long int count(std::vector<int>& vec, int threadNum)
   for (int i = 0; i < threadNum; i++)
     result += results[i];
 
+  delete[] results;
+  delete[] threads;  // is this correct?
   return result;
 }
