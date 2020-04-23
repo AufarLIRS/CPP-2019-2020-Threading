@@ -1,8 +1,8 @@
 #include <iostream>
-#include <methods.h>
 #include <future>
 #include <algorithm>
 #include <cstdlib>
+#include <vector>
 
 using namespace std;
 
