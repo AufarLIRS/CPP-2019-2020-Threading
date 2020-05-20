@@ -66,7 +66,6 @@ std::vector<int> calc(std::vector<int>& a, std::vector<int>& b)
     threads[i] = new std::thread([&]() {
       for (int j = 0; i * partLength + j < a.size() && j < partLength; j++)
         result[j] = b.at(j) * a.at(j);
-
     });
   }
 

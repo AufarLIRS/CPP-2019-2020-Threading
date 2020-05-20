@@ -40,7 +40,6 @@ long long int count(std::vector<int>& vec, int threadNum)
     threads[i] = new std::thread([&]() {
       for (int j = 0; i * partLength + j < vec.size() && j < partLength; j++)
         results[i] += vec.at(j);
-
     });
   }
 
