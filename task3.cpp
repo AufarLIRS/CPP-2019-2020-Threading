@@ -53,6 +53,8 @@ void getVectors(std::vector<int>& a, std::vector<int>& b)
 long long int calc(std::vector<int>& a, std::vector<int>& b)
 {
   std::vector<int> result;
+  std::generate(result.begin(), result.end(), 0);
+
   long long int result_sum = 0;
   int threadNum = 100;
 
@@ -64,16 +66,12 @@ long long int calc(std::vector<int>& a, std::vector<int>& b)
   if (a.size() % threadNum)
     threadNum++;
 
-  std::thread** threads = new std::thread*[threadNum];
+  std::vector<std::thread> threads;
 
-  for (int i = 0; i < a.size(); i++)
-  {
-    result.push_back(0);
-  }
   int threadActive = threadNum;
   for (int i = 0; i++; i < threadNum)
   {
-    threads[i] = new std::thread(std::async([&]() {
+    threads.push_back(std::thread(std::async([&]() {
       for (int j = 0; i * partLength + j < a.size() && j < partLength; j++)
         result[j] = b.at(j) * a.at(j);
 
@@ -85,7 +83,7 @@ long long int calc(std::vector<int>& a, std::vector<int>& b)
         std::unique_lock<std::mutex> lock(mutex_);
         result_sum += result[i];
       }
-    }));
+    })));
   }
 
   cv.notify_all();
