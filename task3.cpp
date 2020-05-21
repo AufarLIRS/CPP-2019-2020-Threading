@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <algorithm>
 #include <mutex>
+#include <future>
 
 namespace task3
 {
@@ -12,7 +13,7 @@ std::condition_variable cv;
 
 void task3();
 void getVectors(std::vector<int>& a, std::vector<int>& b);
-std::vector<int> calc(std::vector<int>& a, std::vector<int>& b);
+long long int calc(std::vector<int>& a, std::vector<int>& b);
 
 void task3()
 {
@@ -20,13 +21,8 @@ void task3()
   generate(a.begin(), a.end(), rand);
   std::vector<int> b(10000);
   generate(b.begin(), b.end(), rand);
-  std::vector<int> result = calc(a, b);
-  int scalar_mult = 0;
-  for (int i = 0; i < result.size(); i++)
-  {
-    scalar_mult += result[i];
-  }
-  std::cout << scalar_mult << std::endl;
+
+  std::cout << calc(a, b) << std::endl;
 }
 
 void getVectors(std::vector<int>& a, std::vector<int>& b)
@@ -54,9 +50,10 @@ void getVectors(std::vector<int>& a, std::vector<int>& b)
   }
 }
 
-std::vector<int> calc(std::vector<int>& a, std::vector<int>& b)
+long long int calc(std::vector<int>& a, std::vector<int>& b)
 {
   std::vector<int> result;
+  long long int result_sum = 0;
   int threadNum = 100;
 
   if (a.size() < threadNum)
@@ -73,27 +70,27 @@ std::vector<int> calc(std::vector<int>& a, std::vector<int>& b)
   {
     result.push_back(0);
   }
+  int threadActive = threadNum;
   for (int i = 0; i++; i < threadNum)
   {
-    threads[i] = new std::thread([&]() {
+    threads[i] = new std::thread(std::async([&]() {
+      for (int j = 0; i * partLength + j < a.size() && j < partLength; j++)
+        result[j] = b.at(j) * a.at(j);
+
+      threadActive--;
+      std::unique_lock<std::mutex> lock(mutex_);
+      cv.wait(lock, [=] { return threadActive == 0; });
       for (int j = 0; i * partLength + j < a.size() && j < partLength; j++)
       {
-        std::lock_guard<std::mutex> lk(mutex_);
-        result[j] = b.at(j) * a.at(j);
+        std::unique_lock<std::mutex> lock(mutex_);
+        result_sum += result[i];
       }
-
-      {
-        std::lock_guard<std::mutex> lk(mutex_);
-        threadNum--;
-      }
-      cv.notify_all();
-    });
+    }));
   }
 
-  while (threadNum > 0)
-    wait();
+  cv.notify_all();
 
-  return result;
+  return result_sum;
 }
 
 }  // namespace task3
