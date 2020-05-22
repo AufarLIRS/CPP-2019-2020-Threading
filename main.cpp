@@ -6,10 +6,7 @@
 
 using namespace std;
 
-// static mutex mtx;
 static condition_variable cv;
-// static atomic<int> a = 0;
-// static array<int, 1000> arr;
 
 // Task 1
 int vector_sum(vector<int>& v, size_t from, size_t to)
